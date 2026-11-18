@@ -3,6 +3,7 @@ import { Vec3 } from './globeMath';
 export interface MoscowHub {
   id: string;
   label: string;
+  shortLabel: string;
   dxKm: number;
   dyKm: number;
 }
@@ -109,8 +110,44 @@ export function buildMoskvaRiver(segments = 64): Vec3[] {
 }
 
 export const MOSCOW_HUBS: MoscowHub[] = [
-  { id: 'cao', label: 'ЦЕНТР · ЦАО', dxKm: 0.8, dyKm: 0.8 },
-  { id: 'city', label: 'МОСКВА-СИТИ', dxKm: -8.6, dyKm: -1.6 },
-  { id: 'sao', label: 'СЕВЕР · САО', dxKm: -2.4, dyKm: 12.2 },
-  { id: 'uao', label: 'ЮГ · ЮАО', dxKm: 6.2, dyKm: -11.2 },
+  { id: 'cao', label: 'КРЕМЛЬ · ЦАО', shortLabel: 'ЦАО', dxKm: 1.6, dyKm: 1.2 },
+  { id: 'city', label: 'МОСКВА-СИТИ', shortLabel: 'СИТИ', dxKm: -8.2, dyKm: -0.8 },
+  { id: 'sao', label: 'СЕВЕР · САО', shortLabel: 'САО', dxKm: -1.8, dyKm: 12.6 },
+  { id: 'uao', label: 'ЮГ · ЮАО', shortLabel: 'ЮАО', dxKm: 5.8, dyKm: -11.4 },
+  { id: 'zao', label: 'ЗАПАД · ЗАО', shortLabel: 'ЗАО', dxKm: -13.6, dyKm: -8.6 },
 ];
+
+/**
+ * Generates radial Moscow avenues (Leningradsky, Yaroslavsky, Entuziastov, Varshavskoe, Kutuzovsky, etc.)
+ * extending across the spherical city-planet beyond MKAD for rich 3D geodesic continuity.
+ */
+export function buildMoscowAvenues(maxKm = 27, segments = 24): Vec3[][] {
+  const anglesDeg = [14, 58, 96, 134, 178, 224, 268, 318];
+  return anglesDeg.map((deg) => {
+    const rad = (deg * Math.PI) / 180;
+    const pts: Vec3[] = [];
+    for (let i = 0; i <= segments; i++) {
+      const rKm = 2.2 + (i / segments) * (maxKm - 2.2);
+      const px = Math.cos(rad) * rKm;
+      const py = Math.sin(rad) * rKm;
+      pts.push(moscowKmToUnitVec(px, py));
+    }
+    return pts;
+  });
+}
+
+export interface CityTowerSpec {
+  dxKm: number;
+  dyKm: number;
+  height: number;
+  width: number;
+}
+
+export const MOSCOW_CITY_TOWERS: CityTowerSpec[] = [
+  { dxKm: -7.8, dyKm: -1.6, height: 0.135, width: 0.025 },
+  { dxKm: -7.1, dyKm: -1.1, height: 0.105, width: 0.021 },
+  { dxKm: -8.3, dyKm: -1.0, height: 0.092, width: 0.020 },
+  { dxKm: -7.5, dyKm: -2.2, height: 0.078, width: 0.019 },
+  { dxKm: -6.7, dyKm: -1.8, height: 0.064, width: 0.018 },
+];
+

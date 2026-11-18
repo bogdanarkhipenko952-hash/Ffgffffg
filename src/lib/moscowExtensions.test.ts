@@ -2,9 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   buildMoskvaRiver,
+  buildMoscowAvenues,
   buildMoscowRing,
   generateMoscowDotGrid,
   moscowKmToUnitVec,
+  MOSCOW_CITY_TOWERS,
   MOSCOW_HUBS,
 } from './moscowMap';
 import { computeNonWhiteBounds } from './imageCrop';
@@ -27,12 +29,15 @@ test('generateMoscowDotGrid produces dense Moscow urban fabric with unit vectors
   }
 });
 
-test('Moscow rings, river, and 4 Moscow hubs are well-formed', () => {
+test('Moscow rings, river, avenues, towers, and 5 Moscow hubs are well-formed', () => {
   const mkad = buildMoscowRing(17.2, 20.4);
   assert.equal(mkad.length, 73);
   const river = buildMoskvaRiver(48);
   assert.equal(river.length, 49);
-  assert.equal(MOSCOW_HUBS.length, 4);
+  assert.equal(MOSCOW_HUBS.length, 5);
+  const avenues = buildMoscowAvenues();
+  assert.equal(avenues.length, 8);
+  assert.ok(MOSCOW_CITY_TOWERS.length >= 4);
 });
 
 test('computeNonWhiteBounds tightly isolates left & right units on synthetic RGBA buffer', () => {

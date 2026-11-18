@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { drawGlobeFrame } from './renderers/globeCanvas';
 import {
   computeBandEdgeRatio,
   drawDeliveryStage,
@@ -18,6 +17,7 @@ import {
 import { ServiceIcon, ServiceIconType } from './components/ServiceIcons';
 import { QuoteModal } from './components/QuoteModal';
 import { ClientsSection } from './components/ClientsSection';
+import { MoscowGlobe3D, MoscowGlobeState } from './components/MoscowGlobe3D';
 
 interface StatDef {
   id: string;
@@ -205,7 +205,16 @@ export default function App() {
   const hwrapRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLElement>(null);
   const hfRef = useRef<HTMLDivElement>(null);
-  const globeCanvasRef = useRef<HTMLCanvasElement>(null);
+  const globeStateRef = useRef<MoscowGlobeState>({
+    vw: 1440,
+    heroHeight: 900,
+    uv: 1,
+    up: 1,
+    isPortrait: false,
+    reducedMotion: false,
+    scrollFadeOpacity: 1,
+    hidden: false,
+  });
   const logoRef = useRef<HTMLAnchorElement>(null);
   const navLinkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const overRef = useRef<HTMLParagraphElement>(null);
@@ -444,7 +453,6 @@ export default function App() {
     let lastPaintedScrollY = -1;
     let lastPaintedQ = -1;
     let lastTrackTop = -1;
-    let lastGlobePaint = 0;
     let prevScrollY = window.scrollY;
     let prevTime = performance.now();
     let smoothedSpeed = 0;
@@ -519,25 +527,15 @@ export default function App() {
         }
       }
 
-      // 2. Globe Canvas (Moscow-only 3D sphere, paced smoothly at ~30fps when idle)
-      if (
-        globeCanvasRef.current &&
-        glow.e >= -0.1 &&
-        (scrollChanged || (!reducedMotion && now - lastGlobePaint >= 33))
-      ) {
-        lastGlobePaint = now;
-        drawGlobeFrame({
-          canvas: globeCanvasRef.current,
-          elapsedSec,
-          vw: units.vw,
-          heroHeight: units.heroHeight,
-          uv: units.uv,
-          up: units.up,
-          isPortrait: units.modes.port,
-          reducedMotion,
-          scrollFadeOpacity: glow.globeOpacity,
-        });
-      }
+      // 2. Sync Three.js 3D Moscow Planet state without React re-renders
+      globeStateRef.current.vw = units.vw;
+      globeStateRef.current.heroHeight = units.heroHeight;
+      globeStateRef.current.uv = units.uv;
+      globeStateRef.current.up = units.up;
+      globeStateRef.current.isPortrait = units.modes.port;
+      globeStateRef.current.reducedMotion = reducedMotion;
+      globeStateRef.current.scrollFadeOpacity = glow.globeOpacity;
+      globeStateRef.current.hidden = units.modes.sticky && glow.heroHidden;
 
       // 3. Services Scroll Scene
       if (trackRef.current) {
@@ -706,17 +704,10 @@ export default function App() {
 
   return (
     <main>
-      {/* SECTION 1: GLOBE HERO */}
+      {/* SECTION 1: 3D MOSCOW GLOBE HERO */}
       <div className="hwrap" ref={hwrapRef}>
         <section className="hero" id="top" ref={heroRef}>
-          <div className="gwrap">
-            <canvas
-              id="globe"
-              ref={globeCanvasRef}
-              data-testid="globe-canvas"
-              aria-hidden="true"
-            />
-          </div>
+          <MoscowGlobe3D stateRef={globeStateRef} />
 
           <div className="hf" ref={hfRef}>
             <a
