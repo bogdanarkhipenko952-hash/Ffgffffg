@@ -1,0 +1,6 @@
+{
+  "name": "KV Климат",
+  "description": "Подбор, доставка, аккуратная распаковка и профессиональный монтаж кондиционеров в Москве и МО под ключ.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
